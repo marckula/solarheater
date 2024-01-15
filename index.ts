@@ -207,13 +207,13 @@ const pipe3: Pipe = new Pipe('pipe_tank_to_collector', 5.0)
 SolarCollectorSystem.insert(pipe3)
 
 let totalSystemFluidCapacity: number = SolarCollectorSystem.totalFluidVolume()
-console.log('totalSystemFluidVolume (l)', totalSystemFluidCapacity)
+console.log('totalSystemFluidVolume (L)', totalSystemFluidCapacity)
 
 let totalFluidMass: number = SolarCollectorSystem.totalFluidMass()
 console.log('totalFluidMass (kg)', totalFluidMass)
 
 let minimalPumpRate: number = SolarCollectorSystem.calculatePumpSpeed(10)   // temperatureRise in °C
-console.log('minimalPumpRate (kg/s)', minimalPumpRate)
+console.log('minimalPumpRate (L/min)', minimalPumpRate)
 
 SolarCollectorSystem.print()
 
