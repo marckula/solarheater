@@ -15,7 +15,7 @@ var FluidSystemNodeType;
 class FluidSystemNode {
     constructor(type, name, fluidCapacity) {
         this.type = 'node';
-        this.name = ''; //  let's assume these are all unique for now - @TODO use an id
+        this.name = '';
         this.type = type;
         this.name = name;
         this.fluidCapacity = fluidCapacity;
@@ -30,9 +30,6 @@ class SolarCollector extends FluidSystemNode {
         this.efficiency = efficiency;
         this.metersSq = metersSq;
     }
-    area() {
-        return this.metersSq;
-    }
 }
 class Pump extends FluidSystemNode {
     constructor(name, flow, fluidCapacity) {
@@ -42,27 +39,27 @@ class Pump extends FluidSystemNode {
     }
 }
 class Pipe extends FluidSystemNode {
-    constructor(name, efficiency, fluidCapacity) {
+    constructor(name, fluidCapacity) {
         super(FluidSystemNodeType.Pipe, name, fluidCapacity);
-        this.efficiency = 1.0; //  0.0 - 1.0
-        this.efficiency = efficiency;
+        console.log(FluidSystemNodeType.Pipe, this);
     }
 }
 class StorageTank extends FluidSystemNode {
     constructor(name, fluidCapacity) {
         super(FluidSystemNodeType.StorageTank, name, fluidCapacity);
+        console.log(FluidSystemNodeType.StorageTank, this);
     }
 }
 class ClosedFluidSystem {
-    constructor(fluidDensity, systemEfficiency, fluidSpecificHeat, solarIrradiance) {
+    constructor(fluidDensity, fluidSpecificHeat, solarIrradiance) {
         this.fluidDensity = 998; //  kg/m^3
-        this.systemEfficiency = 0.85; // Optional parameter with default value
         this.fluidSpecificHeat = 4186; // fluidSpecificHeat in J/kg°C (specific heat of water)
         this.solarIrradiance = 1000; // solarIrradiance in W/m² (peak sunlight)
         this.head = null;
         this.fluidDensity = fluidDensity;
-        this.systemEfficiency = systemEfficiency !== null && systemEfficiency !== void 0 ? systemEfficiency : this.systemEfficiency;
         this.solarIrradiance = solarIrradiance !== null && solarIrradiance !== void 0 ? solarIrradiance : this.solarIrradiance;
+        this.fluidSpecificHeat = fluidSpecificHeat !== null && fluidSpecificHeat !== void 0 ? fluidSpecificHeat : this.fluidSpecificHeat;
+        console.log('Closed Fluid System', this);
     }
     insert(newNode) {
         if (this.head === null) {
@@ -102,18 +99,18 @@ class ClosedFluidSystem {
         } while (current !== this.head);
         return nodes;
     }
-    calculateMinimalPumpRate(temperatureRise) {
-        let collectors = this.getSolarCollectors(); //  could be set up to return an array of them
-        let energyAbsorbed = 0.0; //  watts
+    calculatePumpSpeed(targetTemperatureRiseC) {
+        // Calculate the total energy absorbed by the solar collectors
+        let collectors = this.getSolarCollectors();
+        let totalEnergyAbsorbed = 0.0; //  watts
         collectors.forEach((collector) => {
-            energyAbsorbed += (collector.area() * collector.efficiency * this.solarIrradiance);
+            totalEnergyAbsorbed += collector.metersSq * collector.efficiency * this.solarIrradiance;
         });
-        // Calculate the energy required to achieve the desired temperature rise
-        // Energy (Joules) = mass (kg) * specific heat capacity (J/kg°C) * temperature rise (°C)
-        // Power (Watts) = Energy (Joules) / Time (seconds)
-        // Flow rate (kg/s) = Power (Watts) / (specific heat capacity (J/kg°C) * temperature rise (°C))
-        const flowRate = (energyAbsorbed * this.systemEfficiency) / (this.fluidSpecificHeat * temperatureRise);
-        return flowRate; // Flow rate in kg/s (kilograms per second)
+        // Calculate the flow rate required to achieve the target temperature rise
+        let flowRate = totalEnergyAbsorbed / (this.fluidSpecificHeat * targetTemperatureRiseC);
+        // Convert the flow rate from kg/s to L/min (since the pump speed is usually measured in L/min)
+        let pumpSpeed = flowRate * 60 * 1000 / this.fluidDensity;
+        return pumpSpeed;
     }
     //  returns litres
     totalFluidVolume() {
@@ -124,7 +121,6 @@ class ClosedFluidSystem {
         do {
             if ('fluidCapacity' in current) {
                 totalFluidVolume = totalFluidVolume + current.fluidCapacity;
-                //console.log('totalFluidVolume ' + current.name, totalFluidVolume)
             }
             else {
                 console.log('current is missing totalFluidVolume property');
@@ -136,8 +132,7 @@ class ClosedFluidSystem {
     totalFluidMass() {
         let volume = this.totalFluidVolume() / 1000; //  convert litres to m^3
         let density = this.fluidDensity;
-        let mass = volume * density;
-        return mass;
+        return volume * density;
     }
 }
 /**
@@ -145,22 +140,24 @@ class ClosedFluidSystem {
  * adding nodes automatically attaches them to previous node
  * adding nodes automatically attaches them to the head node
  */
-const SolarCollectorSystem = new ClosedFluidSystem(998, 0.85, 4186, 1000);
-const collector = new SolarCollector('big collector', 1.0, 1000, 10.0);
+const SolarCollectorSystem = new ClosedFluidSystem(998, 4186, 1000);
+const collector = new SolarCollector('big collector', .25, 200, 300.0);
 SolarCollectorSystem.insert(collector);
-const pipe1 = new Pipe('pipe_collector_to_pump', 1.0, 1.0);
+const pipe1 = new Pipe('pipe_collector_to_pump', 1.0);
 SolarCollectorSystem.insert(pipe1);
 const pump = new Pump('old pump', 1.0, 1.0);
 SolarCollectorSystem.insert(pump);
-const pipe2 = new Pipe('pipe_pump_to_tank', 1.0, 2.0);
+const pipe2 = new Pipe('pipe_pump_to_tank', 2.0);
 SolarCollectorSystem.insert(pipe2);
 const storageTank = new StorageTank('efficient tank', 500.0);
 SolarCollectorSystem.insert(storageTank);
-const pipe3 = new Pipe('pipe_tank_to_collector', 1.0, 5.0);
+const pipe3 = new Pipe('pipe_tank_to_collector', 5.0);
 SolarCollectorSystem.insert(pipe3);
 let totalSystemFluidCapacity = SolarCollectorSystem.totalFluidVolume();
-console.log('totalSystemFluidVolume', totalSystemFluidCapacity);
+console.log('totalSystemFluidVolume (l)', totalSystemFluidCapacity);
 let totalFluidMass = SolarCollectorSystem.totalFluidMass();
-console.log('totalFluidMass', totalFluidMass);
+console.log('totalFluidMass (kg)', totalFluidMass);
+let minimalPumpRate = SolarCollectorSystem.calculatePumpSpeed(10); // temperatureRise in °C
+console.log('minimalPumpRate (kg/s)', minimalPumpRate);
 SolarCollectorSystem.print();
 //# sourceMappingURL=index.js.map
