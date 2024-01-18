@@ -154,10 +154,10 @@ SolarCollectorSystem.insert(storageTank);
 const pipe3 = new Pipe('pipe_tank_to_collector', 5.0);
 SolarCollectorSystem.insert(pipe3);
 let totalSystemFluidCapacity = SolarCollectorSystem.totalFluidVolume();
-console.log('totalSystemFluidVolume (l)', totalSystemFluidCapacity);
+console.log('totalSystemFluidVolume (L)', totalSystemFluidCapacity);
 let totalFluidMass = SolarCollectorSystem.totalFluidMass();
 console.log('totalFluidMass (kg)', totalFluidMass);
 let minimalPumpRate = SolarCollectorSystem.calculatePumpSpeed(10); // temperatureRise in °C
-console.log('minimalPumpRate (kg/s)', minimalPumpRate);
+console.log('minimalPumpRate (L/min)', minimalPumpRate);
 SolarCollectorSystem.print();
 //# sourceMappingURL=index.js.map

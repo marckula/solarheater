@@ -11,7 +11,7 @@ enum FluidSystemNodeType {
     Pipe = 'pipe',
     StorageTank = 'storage-tank'
 }
-class FluidSystemNode {
+export class FluidSystemNode {
     type: string = 'node'
     name: string = ''
     fluidCapacity: number   // litres
@@ -25,7 +25,7 @@ class FluidSystemNode {
     }
 }
 
-class SolarCollector extends FluidSystemNode {
+export class SolarCollector extends FluidSystemNode {
 
     efficiency : number = 0.25     //  0.0 = 1.0
     metersSq = 10      //   size of collector in m^2
@@ -37,7 +37,7 @@ class SolarCollector extends FluidSystemNode {
     }
 }
 
-class Pump extends FluidSystemNode {
+export class Pump extends FluidSystemNode {
 
     flow: number = 1.0              //  liters / min
 
@@ -47,7 +47,7 @@ class Pump extends FluidSystemNode {
     }
 }
 
-class Pipe extends FluidSystemNode {
+export class Pipe extends FluidSystemNode {
 
     constructor(name: string, fluidCapacity: number) {
         super(FluidSystemNodeType.Pipe, name, fluidCapacity)
@@ -57,14 +57,14 @@ class Pipe extends FluidSystemNode {
 
 }
 
-class StorageTank extends FluidSystemNode {
+export class StorageTank extends FluidSystemNode {
     constructor(name: string, fluidCapacity: number) {
         super(FluidSystemNodeType.StorageTank, name, fluidCapacity)
         console.log(FluidSystemNodeType.StorageTank, this)
     }
 }
 
-class ClosedFluidSystem {
+export class ClosedFluidSystem {
 
     head: FluidSystemNode | null
 
